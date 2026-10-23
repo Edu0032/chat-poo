@@ -8,8 +8,8 @@ load_dotenv()
 
 app = FastAPI()
 
-SUPABASE_URL = os.getenv("SUPABASE_URL", "")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY", "")
+SUPABASE_URL = os.getenv("SUPABASE_URL", "https://nsnwmhsmcdgabjvurpmp.supabase.co")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY", "sb_publishable_T6LkHAHISJnzol8QwjtOlw_UTMjHofU")
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 conexoes: list[WebSocket] = []

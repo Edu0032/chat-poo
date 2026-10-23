@@ -6,7 +6,7 @@ import websocket
 from models import criar_usuario
 
 # Modifique aqui a URL do backend (ex: wss://seu-backend.onrender.com/ws ou ws://localhost:8000/ws)
-WS_URL = "wss://SEU-APP-AQUI.onrender.com/ws"
+WS_URL = "wss://chat-poo.onrender.com/ws"
 
 class ChatApp:
     def __init__(self, root: tk.Tk):
