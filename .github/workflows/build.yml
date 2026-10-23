@@ -1,0 +1,54 @@
+name: Build Executables
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Instalar dependencias Linux
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y python3-tk binutils
+
+      - name: Instalar dependencias
+        run: pip install -r client/requirements.txt
+
+      - name: Build Windows
+        if: runner.os == 'Windows'
+        run: pyinstaller --onefile --noconsole --name ChatClient-Windows client/app.py
+
+      - name: Build Linux
+        if: runner.os == 'Linux'
+        run: pyinstaller --onefile --noconsole --name ChatClient-Linux client/app.py
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ runner.os }}-executable
+          path: dist/*
+
+      - name: Publicar Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          files: dist/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
