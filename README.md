@@ -24,59 +24,57 @@ chat-poo/
 
 ```mermaid
 classDiagram
-    direction TB
+    direction BT
 
     namespace Backend {
         class Usuario_Backend["Usuario"] {
-            <<abstract>>
-            #_nome: str
-            +nome: str
-            +pode_apagar_mensagem()* bool
+            - nome: string
+            + nome(): string
+            + pode_apagar_mensagem(): bool
         }
 
         class UsuarioComum_Backend["UsuarioComum"] {
-            +pode_apagar_mensagem() bool
+            + pode_apagar_mensagem(): bool
         }
 
         class Moderador_Backend["Moderador"] {
-            +pode_apagar_mensagem() bool
+            + pode_apagar_mensagem(): bool
         }
 
         class Mensagem {
-            #_id: int
-            #_autor: str
-            #_tipo_autor: str
-            #_conteudo: str
-            +id: int
-            +autor: str
-            +tipo_autor: str
-            +conteudo: str
+            - id: int
+            - autor: string
+            - tipo_autor: string
+            - conteudo: string
+            + id(): int
+            + autor(): string
+            + tipo_autor(): string
+            + conteudo(): string
         }
     }
 
     namespace Client {
         class Usuario_Client["Usuario"] {
-            <<abstract>>
-            #_nome: str
-            +nome: str
-            +renderizar_botao_apagar(parent_frame, msg_id: int, callback_apagar, tk_module)*
+            - nome: string
+            + nome(): string
+            + renderizar_botao_apagar(Frame, int, callable, module): void
         }
 
         class UsuarioComum_Client["UsuarioComum"] {
-            +renderizar_botao_apagar(parent_frame, msg_id: int, callback_apagar, tk_module)
+            + renderizar_botao_apagar(Frame, int, callable, module): void
         }
 
         class Moderador_Client["Moderador"] {
-            +renderizar_botao_apagar(parent_frame, msg_id: int, callback_apagar, tk_module)
+            + renderizar_botao_apagar(Frame, int, callable, module): void
         }
     }
 
-    Usuario_Backend <|-- UsuarioComum_Backend : Herança
-    Usuario_Backend <|-- Moderador_Backend : Herança
-    Usuario_Backend "1" --> "*" Mensagem : autor
+    UsuarioComum_Backend --> Usuario_Backend : HERANÇA
+    Moderador_Backend --> Usuario_Backend : HERANÇA
+    Usuario_Backend -- Mensagem : ASSOCIAÇÃO
 
-    Usuario_Client <|-- UsuarioComum_Client : Herança
-    Usuario_Client <|-- Moderador_Client : Herança
+    UsuarioComum_Client --> Usuario_Client : HERANÇA
+    Moderador_Client --> Usuario_Client : HERANÇA
 ```
 
 ## Configuração de Ambiente (Backend)
