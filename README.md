@@ -20,6 +20,65 @@ chat-poo/
 └── .gitignore
 ```
 
+## Diagrama de Classes
+
+```mermaid
+classDiagram
+    direction TB
+
+    namespace Backend {
+        class Usuario_Backend["Usuario"] {
+            <<abstract>>
+            #_nome: str
+            +nome: str
+            +pode_apagar_mensagem()* bool
+        }
+
+        class UsuarioComum_Backend["UsuarioComum"] {
+            +pode_apagar_mensagem() bool
+        }
+
+        class Moderador_Backend["Moderador"] {
+            +pode_apagar_mensagem() bool
+        }
+
+        class Mensagem {
+            #_id: int
+            #_autor: str
+            #_tipo_autor: str
+            #_conteudo: str
+            +id: int
+            +autor: str
+            +tipo_autor: str
+            +conteudo: str
+        }
+    }
+
+    namespace Client {
+        class Usuario_Client["Usuario"] {
+            <<abstract>>
+            #_nome: str
+            +nome: str
+            +renderizar_botao_apagar(parent_frame, msg_id: int, callback_apagar, tk_module)*
+        }
+
+        class UsuarioComum_Client["UsuarioComum"] {
+            +renderizar_botao_apagar(parent_frame, msg_id: int, callback_apagar, tk_module)
+        }
+
+        class Moderador_Client["Moderador"] {
+            +renderizar_botao_apagar(parent_frame, msg_id: int, callback_apagar, tk_module)
+        }
+    }
+
+    Usuario_Backend <|-- UsuarioComum_Backend : Herança
+    Usuario_Backend <|-- Moderador_Backend : Herança
+    Usuario_Backend "1" --> "*" Mensagem : autor
+
+    Usuario_Client <|-- UsuarioComum_Client : Herança
+    Usuario_Client <|-- Moderador_Client : Herança
+```
+
 ## Configuração de Ambiente (Backend)
 
 1. Copie o arquivo de exemplo para criar seu `.env`:
