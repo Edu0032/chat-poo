@@ -2,7 +2,7 @@ import os
 from dotenv import load_dotenv
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from supabase import create_client, Client
-from models import criar_usuario
+from models import Mensagem, criar_usuario
 
 load_dotenv()
 
@@ -17,6 +17,9 @@ if not SUPABASE_URL or not SUPABASE_KEY:
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 conexoes: list[WebSocket] = []
+
+# [POO: Lista de Objetos]
+lista_mensagens: list[Mensagem] = []
 
 async def broadcast(dados: dict):
     inativas: list[WebSocket] = []
@@ -43,7 +46,19 @@ async def websocket_endpoint(websocket: WebSocket, nome: str, tipo: str):
     try:
         supabase.table("sessoes").insert({"nome": usuario.nome, "tipo": tipo}).execute()
         historico = supabase.table("mensagens").select("*").order("id").execute()
-        await websocket.send_json({"acao": "historico", "mensagens": historico.data})
+
+        # [POO: Lista de Objetos - Consultar]
+        lista_mensagens.clear()
+        for item in historico.data:
+            autor_obj = criar_usuario(item["autor"], item["tipo_autor"])
+            # [POO: Agregação]
+            msg_obj = Mensagem(item["id"], autor_obj, item["tipo_autor"], item["conteudo"])
+            lista_mensagens.append(msg_obj)
+
+        await websocket.send_json({
+            "acao": "historico",
+            "mensagens": [m.to_dict() for m in lista_mensagens]
+        })
 
         while True:
             dados = await websocket.receive_json()
@@ -56,12 +71,34 @@ async def websocket_endpoint(websocket: WebSocket, nome: str, tipo: str):
                     "conteudo": dados["conteudo"]
                 }).execute()
                 if res.data:
-                    await broadcast({"acao": "nova_mensagem", "mensagem": res.data[0]})
+                    item = res.data[0]
+                    # [POO: Agregação]
+                    nova_msg = Mensagem(item["id"], usuario, tipo, item["conteudo"])
+                    # [POO: Lista de Objetos - Inserir]
+                    lista_mensagens.append(nova_msg)
+                    await broadcast({"acao": "nova_mensagem", "mensagem": nova_msg.to_dict()})
+
+            elif acao == "editar":
+                msg_id = dados["id"]
+                novo_conteudo = dados["conteudo"]
+                # [POO: Lista de Objetos - Alterar]
+                for m in lista_mensagens:
+                    if m.id == msg_id:
+                        # [POO: Encapsulamento]
+                        m.conteudo = novo_conteudo
+                        break
+                supabase.table("mensagens").update({"conteudo": novo_conteudo}).eq("id", msg_id).execute()
+                await broadcast({"acao": "editada", "id": msg_id, "conteudo": novo_conteudo})
 
             elif acao == "apagar":
                 # [POO: Polimorfismo]
                 if usuario.pode_apagar_mensagem():
                     msg_id = dados["id"]
+                    # [POO: Lista de Objetos - Excluir]
+                    for m in list(lista_mensagens):
+                        if m.id == msg_id:
+                            lista_mensagens.remove(m)
+                            break
                     supabase.table("mensagens").delete().eq("id", msg_id).execute()
                     await broadcast({"acao": "removida", "id": msg_id})
     except WebSocketDisconnect:

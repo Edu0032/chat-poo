@@ -2,7 +2,7 @@ import json
 import os
 import threading
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import messagebox, simpledialog
 from urllib.parse import quote
 import websocket
 from models import criar_usuario
@@ -90,6 +90,8 @@ class ChatApp:
             self.root.after(0, self.carregar_historico, dados.get("mensagens", []))
         elif acao == "nova_mensagem":
             self.root.after(0, self.adicionar_mensagem, dados.get("mensagem", {}))
+        elif acao == "editada":
+            self.root.after(0, self.atualizar_mensagem, dados.get("id"), dados.get("conteudo", ""))
         elif acao == "removida":
             self.root.after(0, self.remover_mensagem, dados.get("id"))
 
@@ -114,12 +116,26 @@ class ChatApp:
 
         lbl = tk.Label(row, text=f"{autor}: {conteudo}", anchor="w")
         lbl.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        row.lbl = lbl
+        row.autor = autor
 
         # [POO: Polimorfismo]
         self.usuario.renderizar_botao_apagar(row, msg_id, self.solicitar_apagar, tk)
 
+        btn_editar = tk.Button(
+            row,
+            text="Editar",
+            command=lambda: self.solicitar_editar(msg_id)
+        )
+        btn_editar.pack(side=tk.RIGHT, padx=2)
+
         self.canvas.update_idletasks()
         self.canvas.yview_moveto(1.0)
+
+    def atualizar_mensagem(self, msg_id: int, novo_conteudo: str):
+        row = self.mensagens_widgets.get(msg_id)
+        if row and hasattr(row, "lbl"):
+            row.lbl.config(text=f"{row.autor}: {novo_conteudo}")
 
     def remover_mensagem(self, msg_id: int):
         widget = self.mensagens_widgets.pop(msg_id, None)
@@ -131,6 +147,11 @@ class ChatApp:
         if texto and self.ws:
             self.ws.send(json.dumps({"acao": "enviar", "conteudo": texto}))
             self.entry_msg.delete(0, tk.END)
+
+    def solicitar_editar(self, msg_id: int):
+        novo_texto = simpledialog.askstring("Editar Mensagem", "Novo conteúdo:", parent=self.root)
+        if novo_texto and novo_texto.strip() and self.ws:
+            self.ws.send(json.dumps({"acao": "editar", "id": msg_id, "conteudo": novo_texto.strip()}))
 
     def solicitar_apagar(self, msg_id: int):
         if self.ws:
