@@ -89,7 +89,7 @@ class ChatApp:
         if acao == "historico":
             self.root.after(0, self.carregar_historico, dados.get("mensagens", []))
         elif acao == "nova_mensagem":
-            self.root.after(0, self.adicionar_mensagem, dados.get("mensagem", {}))
+            self.root.after(0, self.adicionar_mensagem, dados.get("mensagem", {}), True)
         elif acao == "editada":
             self.root.after(0, self.atualizar_mensagem, dados.get("id"), dados.get("conteudo", ""))
         elif acao == "removida":
@@ -105,7 +105,7 @@ class ChatApp:
         for msg in mensagens:
             self.adicionar_mensagem(msg)
 
-    def adicionar_mensagem(self, msg: dict):
+    def adicionar_mensagem(self, msg: dict, sessao_atual: bool = False):
         msg_id = msg.get("id")
         autor = msg.get("autor", "")
         conteudo = msg.get("conteudo", "")
@@ -122,7 +122,7 @@ class ChatApp:
         # [POO: Polimorfismo]
         self.usuario.renderizar_botao_apagar(row, msg_id, self.solicitar_apagar, tk)
 
-        if self.usuario and autor == self.usuario.nome:
+        if sessao_atual and self.usuario and autor == self.usuario.nome:
             btn_editar = tk.Button(
                 row,
                 text="Editar",

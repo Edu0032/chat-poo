@@ -42,6 +42,7 @@ async def websocket_endpoint(websocket: WebSocket, nome: str, tipo: str):
     await websocket.accept()
     conexoes.append(websocket)
     usuario = criar_usuario(nome, tipo)
+    mensagens_sessao: set[int] = set()
 
     try:
         supabase.table("sessoes").insert({"nome": usuario.nome, "tipo": tipo}).execute()
@@ -76,19 +77,21 @@ async def websocket_endpoint(websocket: WebSocket, nome: str, tipo: str):
                     nova_msg = Mensagem(item["id"], usuario, tipo, item["conteudo"])
                     # [POO: Lista de Objetos - Inserir]
                     lista_mensagens.append(nova_msg)
+                    mensagens_sessao.add(nova_msg.id)
                     await broadcast({"acao": "nova_mensagem", "mensagem": nova_msg.to_dict()})
 
             elif acao == "editar":
                 msg_id = dados["id"]
                 novo_conteudo = dados["conteudo"]
-                # [POO: Lista de Objetos - Alterar]
-                for m in lista_mensagens:
-                    if m.id == msg_id and m.autor.nome == usuario.nome:
-                        # [POO: Encapsulamento]
-                        m.conteudo = novo_conteudo
-                        supabase.table("mensagens").update({"conteudo": novo_conteudo}).eq("id", msg_id).eq("autor", usuario.nome).execute()
-                        await broadcast({"acao": "editada", "id": msg_id, "conteudo": novo_conteudo})
-                        break
+                if msg_id in mensagens_sessao:
+                    # [POO: Lista de Objetos - Alterar]
+                    for m in lista_mensagens:
+                        if m.id == msg_id:
+                            # [POO: Encapsulamento]
+                            m.conteudo = novo_conteudo
+                            supabase.table("mensagens").update({"conteudo": novo_conteudo}).eq("id", msg_id).execute()
+                            await broadcast({"acao": "editada", "id": msg_id, "conteudo": novo_conteudo})
+                            break
 
             elif acao == "apagar":
                 # [POO: Polimorfismo]
