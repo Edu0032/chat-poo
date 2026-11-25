@@ -24,57 +24,70 @@ chat-poo/
 
 ```mermaid
 classDiagram
-    direction BT
-
     namespace Backend {
-        class Usuario_Backend["Usuario"] {
-            - nome: string
-            + nome(): string
-            + pode_apagar_mensagem(): bool
+        class Usuario {
+            <<abstract>>
+            #nome: string
+            +nome() string
+            +pode_apagar_mensagem()* bool
         }
 
-        class UsuarioComum_Backend["UsuarioComum"] {
-            + pode_apagar_mensagem(): bool
+        class UsuarioComum {
+            +pode_apagar_mensagem() bool
         }
 
-        class Moderador_Backend["Moderador"] {
-            + pode_apagar_mensagem(): bool
+        class Moderador {
+            +pode_apagar_mensagem() bool
         }
 
         class Mensagem {
-            - id: int
-            - autor: string
-            - tipo_autor: string
-            - conteudo: string
-            + id(): int
-            + autor(): string
-            + tipo_autor(): string
-            + conteudo(): string
+            #id: int
+            #autor: Usuario
+            #tipo_autor: string
+            #conteudo: string
+            +id() int
+            +autor() Usuario
+            +tipo_autor() string
+            +conteudo() string
+            +conteudo(novo_conteudo: string) void
+            +to_dict() dict
         }
     }
+
+    Usuario <|-- UsuarioComum : HERANÇA
+    Usuario <|-- Moderador : HERANÇA
+    Mensagem o-- Usuario : AGREGAÇÃO
 
     namespace Client {
-        class Usuario_Client["Usuario"] {
-            - nome: string
-            + nome(): string
-            + renderizar_botao_apagar(Frame, int, callable, module): void
+        class UsuarioClient["Usuario"] {
+            <<abstract>>
+            #nome: string
+            +nome() string
+            +renderizar_botao_apagar(parent_frame, msg_id: int, callback_apagar, tk_module)* void
         }
 
-        class UsuarioComum_Client["UsuarioComum"] {
-            + renderizar_botao_apagar(Frame, int, callable, module): void
+        class UsuarioComumClient["UsuarioComum"] {
+            +renderizar_botao_apagar(parent_frame, msg_id: int, callback_apagar, tk_module) void
         }
 
-        class Moderador_Client["Moderador"] {
-            + renderizar_botao_apagar(Frame, int, callable, module): void
+        class ModeradorClient["Moderador"] {
+            +renderizar_botao_apagar(parent_frame, msg_id: int, callback_apagar, tk_module) void
+        }
+
+        class ChatApp {
+            +usuario: Usuario
+            +mensagens_widgets: dict
+            +conectar() void
+            +adicionar_mensagem(msg: dict) void
+            +enviar_mensagem() void
+            +solicitar_editar(msg_id: int) void
+            +solicitar_apagar(msg_id: int) void
         }
     }
 
-    UsuarioComum_Backend --> Usuario_Backend : HERANÇA
-    Moderador_Backend --> Usuario_Backend : HERANÇA
-    Usuario_Backend -- Mensagem : ASSOCIAÇÃO
-
-    UsuarioComum_Client --> Usuario_Client : HERANÇA
-    Moderador_Client --> Usuario_Client : HERANÇA
+    UsuarioClient <|-- UsuarioComumClient : HERANÇA
+    UsuarioClient <|-- ModeradorClient : HERANÇA
+    ChatApp o-- UsuarioClient : AGREGAÇÃO
 ```
 
 ## Configuração de Ambiente (Backend)
