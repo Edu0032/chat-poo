@@ -1,6 +1,6 @@
 # Chat POO
 
-Sistema de chat em tempo real desenvolvido em Python aplicando os pilares de Programação Orientada a Objetos (**Abstração**, **Encapsulamento**, **Herança** e **Polimorfismo**), com comunicação via WebSockets e persistência no Supabase.
+Sistema de chat em tempo real desenvolvido em Python aplicando os pilares de Programação Orientada a Objetos (**Abstração**, **Encapsulamento**, **Herança** e **Polimorfismo**), com comunicação via WebSockets e persistência no Supabase. O projeto permite interligar diferentes clients em máquinas diferentes através de mensagens de chat, que são enviadas via API. A interface feita usando a biblioteca Tkinter no python proporciona uma melhor experiência visual, possuindo uma janela com botões de ações como **Enviar**, **Editar** e **apagar**.
 
 [Baixar Executáveis (Releases)](../../releases)
 
