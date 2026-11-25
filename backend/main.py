@@ -83,12 +83,12 @@ async def websocket_endpoint(websocket: WebSocket, nome: str, tipo: str):
                 novo_conteudo = dados["conteudo"]
                 # [POO: Lista de Objetos - Alterar]
                 for m in lista_mensagens:
-                    if m.id == msg_id:
+                    if m.id == msg_id and m.autor.nome == usuario.nome:
                         # [POO: Encapsulamento]
                         m.conteudo = novo_conteudo
+                        supabase.table("mensagens").update({"conteudo": novo_conteudo}).eq("id", msg_id).eq("autor", usuario.nome).execute()
+                        await broadcast({"acao": "editada", "id": msg_id, "conteudo": novo_conteudo})
                         break
-                supabase.table("mensagens").update({"conteudo": novo_conteudo}).eq("id", msg_id).execute()
-                await broadcast({"acao": "editada", "id": msg_id, "conteudo": novo_conteudo})
 
             elif acao == "apagar":
                 # [POO: Polimorfismo]

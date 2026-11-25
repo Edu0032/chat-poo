@@ -122,12 +122,13 @@ class ChatApp:
         # [POO: Polimorfismo]
         self.usuario.renderizar_botao_apagar(row, msg_id, self.solicitar_apagar, tk)
 
-        btn_editar = tk.Button(
-            row,
-            text="Editar",
-            command=lambda: self.solicitar_editar(msg_id)
-        )
-        btn_editar.pack(side=tk.RIGHT, padx=2)
+        if self.usuario and autor == self.usuario.nome:
+            btn_editar = tk.Button(
+                row,
+                text="Editar",
+                command=lambda: self.solicitar_editar(msg_id)
+            )
+            btn_editar.pack(side=tk.RIGHT, padx=2)
 
         self.canvas.update_idletasks()
         self.canvas.yview_moveto(1.0)
